@@ -1,0 +1,24 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: caffeine
+  datasource:
+    url: jdbc:mysql://Ayaka520/cache?useSSL=false
+    username: cache
+    password: c2tD7NZKSLt4PC8s
+    driver-class-name: com.mysql.jdbc.Driver
+mybatis-plus:
+  type-aliases-package: com.ganga.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      update-strategy: not_null
+      id-type: auto
+logging:
+  level:
+    com.heima: debug
+  pattern:
+    dateformat: HH:mm:ss:SSS
