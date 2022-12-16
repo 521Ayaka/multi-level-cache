@@ -107,7 +107,164 @@ Caffeine的性能非常好，下图是官方给出的性能对比：
 
 
 
-缓存使用的基本API：
+---
+
+
+
+Caffeine既然是缓存的一种，肯定需要有缓存的清除策略，不然的话内存总会有耗尽的时候。
+
+Caffeine提供了三种缓存驱逐策略：
+
+- **基于容量**：设置缓存的数量上限
+
+  ```java
+  // 创建缓存对象
+  Cache<String, String> cache = Caffeine.newBuilder()
+      .maximumSize(1) // 设置缓存大小上限为 1
+      .build();
+  ```
+
+- **基于时间**：设置缓存的有效时间
+
+  ```java
+  // 创建缓存对象
+  Cache<String, String> cache = Caffeine.newBuilder()
+      // 设置缓存有效期为 10 秒，从最后一次写入开始计时 
+      .expireAfterWrite(Duration.ofSeconds(10)) 
+      .build();
+  
+  ```
+
+- **基于引用**：设置缓存为软引用或弱引用，利用GC来回收缓存数据。性能较差，不建议使用。
+
+> **注意**：在默认情况下，当一个缓存元素过期的时候，Caffeine不会自动立即将其清理和驱逐。而是在一次读或写操作后，或者在空闲时间完成对失效数据的驱逐。
+
+
+
+**使用 Caffeine 缓存基本API：**
+
+导入坐标:
+
+```xml
+<!-- caffeine -->
+<dependency>
+    <groupId>com.github.ben-manes.caffeine</groupId>
+    <artifactId>caffeine</artifactId>
+</dependency>
+```
+
+
+
+Tests:
+
+```java
+package com.ganga;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import net.sf.jsqlparser.statement.select.KSQLWindow;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
+
+public class CaffeineTests {
+
+
+    @Test
+    void caffeineCacheTest() {
+
+        //构建一个简单的 Cache 对象
+        Cache<String, String> cache = Caffeine.newBuilder().build();
+
+        //添加一个缓存
+        cache.put("key1", "Ayaka");
+
+        //获取缓存值 getIfPresent(key)
+        //命中：返回值
+        String key = cache.getIfPresent("key1");
+        //未命中：返回 null
+        String key2 = cache.getIfPresent("key2");
+        System.out.println("key = " + key);
+        System.out.println("key2 = " + key2);
+
+        //使用 get(key,faction->{}) 未命中执行函数添加并返回缓存值
+        key2 = cache.get("key2", value -> {
+            //未命中查询数据库，执行业务逻辑
+            //返回要写入缓存的值
+            return "Ayaka的狗🌸";
+        });
+
+        System.out.println("key2 = " + key2);
+
+    }
+
+
+    /*
+     基于大小设置驱逐策略：
+     */
+    @Test
+    void testEvictByNum() throws InterruptedException {
+
+        //构建Cache
+        Cache<String, String> cache = Caffeine
+                .newBuilder()
+                .maximumSize(1) //最大缓存量
+                .build();
+
+        //写缓存
+        cache.put("key1","Ayaka🌸");
+        cache.put("key2","Ayaka520");
+        cache.put("key3","Ayaka521");
+
+        //等待
+        Thread.sleep(20);
+
+        //读缓存
+        System.out.println(cache.getIfPresent("key1"));
+        System.out.println(cache.getIfPresent("key2"));
+        System.out.println(cache.getIfPresent("key3"));
+
+    }
+
+
+    /*
+     基于时间设置驱逐策略：
+     */
+    @Test
+    void testEvictByTime() throws InterruptedException {
+        //构建Cache
+        Cache<String, String> cache = Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.SECONDS)
+                .build();
+
+        //写缓存
+        cache.put("key1","Ayaka🌸");
+        cache.put("key2","Ayaka520");
+        cache.put("key3","Ayaka521");
+
+        //读缓存
+        System.out.println(cache.getIfPresent("key1"));
+        System.out.println(cache.getIfPresent("key2"));
+        System.out.println(cache.getIfPresent("key3"));
+
+        System.out.println("---------------");
+        //等待
+        Thread.sleep(1200L);
+        //读缓存
+        System.out.println(cache.getIfPresent("key1"));
+        System.out.println(cache.getIfPresent("key2"));
+        System.out.println(cache.getIfPresent("key3"));
+
+    }
+}
+```
+
+
+
+
+
+### 使用Caffeine实现JVM缓存
 
 
 

@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Cache-01-Caffeine" target="11" />
+      <module name="Cache-01-Caffeine" target="8" />
       <module name="item-service" target="8" />
     </bytecodeTargetLevel>
   </component>
