@@ -65,9 +65,7 @@ public class ItemController {
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable("id") Long id) {
         boolean isSuccess = itemService.update().set("status", 3).eq("id", id).update();
-        if (isSuccess){
-            itemCache.invalidate();
-        }
+        //TODO: Cache synchronization
     }
 
     @GetMapping("/{id}")
